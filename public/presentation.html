@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIONOS AIR — Executive Architecture & Strategy Deck (12 Slides)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0B0F19;
+      color: #F1F5F9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+    }
+    .slide-card {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media print {
+      body { background: white; color: black; }
+      .no-print { display: none !important; }
+      .slide-page { page-break-after: always; height: 100vh; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+  <!-- TOP BAR -->
+  <header class="bg-[#0F172A] border-b border-slate-800 px-6 py-3 flex items-center justify-between no-print z-50">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold text-sm shadow">
+        ✈
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-white tracking-wider text-sm uppercase font-sans">
+            AIONOS <span class="text-sky-400">AIR</span>
+          </span>
+          <span class="text-slate-500">/</span>
+          <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Executive Architecture Deck
+          </span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-mono">12 Slides • Problem, Architecture, PRAG-A Pipeline & Multi-Persona Testbed</p>
+      </div>
+    </div>
+
+    <!-- Center Navigation -->
+    <div class="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+      <button onclick="prevSlide()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs font-bold text-white transition">◀ Prev</button>
+      <span id="slideIndicator" class="text-xs font-mono font-bold text-sky-400 px-2">1 / 12</span>
+      <button onclick="nextSlide()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs font-bold text-white transition">Next ▶</button>
+    </div>
+
+    <!-- Action Tools -->
+    <div class="flex items-center space-x-2">
+      <button onclick="toggleGrid()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 transition" title="Show All 12 Slides">
+        ⊞ Slide Grid [G]
+      </button>
+      <button onclick="toggleNotes()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 transition" title="Toggle Presenter Notes">
+        📝 Notes [N]
+      </button>
+      <a href="/api/presentation/download" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-bold text-white shadow transition flex items-center space-x-1.5">
+        <span>⬇ Download .PPTX</span>
+      </a>
+      <a href="/" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-xs font-semibold text-white transition">
+        Return to App ↗
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN SLIDE VIEWER -->
+  <main class="flex-1 flex items-center justify-center p-4 sm:p-8 relative">
+    <div id="slideContainer" class="w-full max-w-6xl aspect-[16/9] bg-[#0F172A] border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+      <!-- Dynamic slide content injected by JavaScript -->
+    </div>
+  </main>
+
+  <!-- PRESENTER NOTES DRAWER -->
+  <div id="notesDrawer" class="hidden bg-slate-900 border-t border-slate-800 p-4 px-8 text-sm text-slate-300 font-mono no-print">
+    <div class="max-w-6xl mx-auto flex items-start justify-between">
+      <div>
+        <span class="text-xs font-bold text-sky-400 uppercase tracking-widest block mb-1">Speaker Talking Points & Defense Script:</span>
+        <p id="notesContent" class="text-xs text-slate-200 leading-relaxed max-w-4xl"></p>
+      </div>
+      <button onclick="copyNotes()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded border border-slate-700 text-slate-300 font-mono">
+        📋 Copy Script
+      </button>
+    </div>
+  </div>
+
+  <!-- SLIDE GRID MODAL -->
+  <div id="gridModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 p-6 overflow-y-auto">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+        <h2 class="text-lg font-bold text-white font-mono">12-Slide Overview Gallery</h2>
+        <button onclick="toggleGrid()" class="text-slate-400 hover:text-white text-sm font-bold bg-slate-800 px-3 py-1 rounded">Close ✕</button>
+      </div>
+      <div id="gridContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Grid cards injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-[#0B0F19] border-t border-slate-900 px-6 py-2.5 flex items-center justify-between text-[11px] text-slate-500 font-mono no-print">
+    <span>AIONOS AIR • Enterprise Aviation AI Platform • Sep 2026</span>
+    <span>Use [←] / [→] or [Space] to navigate • [F] Fullscreen • [G] Grid • [N] Notes</span>
+  </footer>
+
+  <script>
+    const slides = [
+      {
+        num: 1,
+        tag: "EXECUTIVE OVERVIEW",
+        title: "AIONOS AIR: Autonomous Disruption Resolution & Policy Authority",
+        subtitle: "Solving the $60B irregular operations (IROPS) crisis with non-hallucinatory deterministic guardrails.",
+        bullets: [
+          "Commercial aviation loses over $60B annually to flight delays, cancellations, and passenger misconnections.",
+          "Legacy contact centers collapse during mass disruptions, creating 45 to 90-minute hold times and brand backlash.",
+          "AIONOS AIR introduces a dual-engine architecture: combining neural conversational fluency with mathematical policy enforcement.",
+          "Guarantees 0.00% hallucinations, 100% compliance with DGCA CAR Section 3 & EU261, and sub-90 second self-service resolution."
+        ],
+        snapshotTitle: "System Performance Metrics",
+        snapshotContent: `
+          <div class="grid grid-cols-2 gap-3 h-full">
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-sky-900/60 flex flex-col justify-center">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Resolution Latency</span>
+              <span class="text-3xl font-bold text-sky-400 font-mono">< 90s</span>
+              <span class="text-[11px] text-slate-400">Slashing 45-min hold queues</span>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-emerald-900/60 flex flex-col justify-center">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Policy Adherence</span>
+              <span class="text-3xl font-bold text-emerald-400 font-mono">100.0%</span>
+              <span class="text-[11px] text-slate-400">Zero unauthorized waivers</span>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-cyan-900/60 flex flex-col justify-center">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Hallucination Rate</span>
+              <span class="text-3xl font-bold text-cyan-400 font-mono">0.00%</span>
+              <span class="text-[11px] text-slate-400">Deterministic code guardrails</span>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-amber-900/60 flex flex-col justify-center">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Audit Compliance</span>
+              <span class="text-3xl font-bold text-amber-400 font-mono">DGCA / EU</span>
+              <span class="text-[11px] text-slate-400">Microsecond-level telemetry</span>
+            </div>
+          </div>
+        `,
+        notes: "Good morning. We are presenting AIONOS AIR, an enterprise disruption control tower for commercial aviation. Irregular operations cost global airlines over $60B annually in delay costs and customer churn. AIONOS AIR introduces a dual-engine architecture combining neural conversational empathy with non-negotiable deterministic policy enforcement."
+      },
+      {
+        num: 2,
+        tag: "PROBLEM STATEMENT",
+        title: "The $60 Billion Aviation Disruption Crisis",
+        subtitle: "Irregular Operations (IROPS) Overwhelm Contact Centers, Bleed Airline Margins & Trigger Regulatory Fines",
+        bullets: [
+          "Hub Ground Stops: Weather and ATC ground stops create sudden 800% spikes in inbound support inquiries.",
+          "Frontline Abandonment: Less than 8% of affected passengers reach an agent within 2 hours during peak ground halts.",
+          "$14.2M Margin Leakage: Stressed frontline agents issue unbudgeted upgrades, unauthorized hotel rooms, and arbitrary waivers.",
+          "Regulatory Penalties: Civil aviation authorities (DGCA CAR Section 3, EU261, US DOT) enforce statutory cash compensation and amenity rules."
+        ],
+        snapshotTitle: "Industry IROPS Breakdown Table",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-sky-400 font-bold text-[11px] pb-2 border-b border-slate-800">GLOBAL AIRLINE IROPS BENCHMARKS</div>
+            <div class="space-y-2 text-[11px]">
+              <div class="flex justify-between py-1 border-b border-slate-800/60"><span class="text-slate-400">Annual Flight Delay Cost:</span><span class="text-rose-400 font-bold">$60,500,000,000</span></div>
+              <div class="flex justify-between py-1 border-b border-slate-800/60"><span class="text-slate-400">Peak Contact Center Wait:</span><span class="text-amber-400 font-bold">45 - 90 Minutes</span></div>
+              <div class="flex justify-between py-1 border-b border-slate-800/60"><span class="text-slate-400">Frontline Discretionary Leak:</span><span class="text-rose-400 font-bold">$14.2M / Carrier / Year</span></div>
+              <div class="flex justify-between py-1 border-b border-slate-800/60"><span class="text-slate-400">Statutory Violation Exposure:</span><span class="text-amber-400 font-bold">Up to €600 / Passenger</span></div>
+              <div class="flex justify-between py-1"><span class="text-slate-400">Loyalty Member NPS Drop:</span><span class="text-rose-400 font-bold">-18 Points During IROPS</span></div>
+            </div>
+          </div>
+        `,
+        notes: "The airline industry cannot solve irregular operations simply by hiring more call center staff. A hub disruption produces an 800% demand surge that overwhelms human capacity, leading to millions in unbudgeted agent waivers and regulatory fines."
+      },
+      {
+        num: 3,
+        tag: "THE AI DILEMMA",
+        title: "Why Generic LLM Chatbots Fail in Commercial Aviation",
+        subtitle: "The Dangerous Legal & Fiscal Liability of Conversational Fluency Without Deterministic Authority",
+        bullets: [
+          "The Air Canada Chatbot Precedent: Legal tribunals confirmed that airlines are strictly liable for whatever an AI chatbot promises.",
+          "Unaffected Return Flight Hallucination: When outbound flight SK-204 is cancelled, generic chatbots mistakenly offer free Business Class upgrades on the unaffected return leg SK-205.",
+          "Delay Threshold Incoherence: Generic LLMs fail numerical boundary checks (e.g. Arvind's 4-hour delay gets lounge/meals, but NEVER hotel rooms, which strictly mandate >5 hours).",
+          "Unbounded Financial Exposure: Without hardcoded caps, LLMs routinely promise multi-thousand dollar waivers to appease frustrated flyers."
+        ],
+        snapshotTitle: "Comparative Audit: Generic LLM vs AIONOS AIR",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-amber-400 font-bold text-[11px] pb-2 border-b border-slate-800">DISRUPTION AUDIT COMPARISON</div>
+            <div class="space-y-2 text-[11px]">
+              <div class="p-2 bg-rose-950/40 rounded border border-rose-900/60">
+                <span class="text-rose-400 font-bold block">❌ Generic LLM Chatbot:</span>
+                <span class="text-slate-300">Upgrades unaffected return leg to Business Class; promises hotel on 4h delay; creates binding legal liability.</span>
+              </div>
+              <div class="p-2 bg-emerald-950/40 rounded border border-emerald-900/60">
+                <span class="text-emerald-400 font-bold block">✓ AIONOS AIR Engine:</span>
+                <span class="text-slate-300">Enforces Return Leg Isolation; strictly blocks hotel (<5h rule); caps waivers at ₹1,500 with supervisor escalation.</span>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: "Why can airlines not simply plug in ChatGPT or an off-the-shelf RAG pipeline? Because conversational fluency does not equal regulatory or financial accuracy. Generic LLMs hallucinate non-existent flights, promise unauthorized upgrades on unaffected return legs, and expose airlines to severe legal liability."
+      },
+      {
+        num: 4,
+        tag: "THE SOLUTION",
+        title: "AIONOS AIR Architecture: Autonomous Policy Authority",
+        subtitle: "Dual-Engine Neural & Deterministic Control Tower with Real-Time PNR Grounding",
+        bullets: [
+          "Tier 1 — Live PNR Telemetry: Binds session directly to verified PNR records, loyalty tiers, disrupted flight segments, and unaffected return legs.",
+          "Tier 2 — Deterministic Policy Engine: Mathematical evaluation of airline operational manuals. Hardcoded rules enforce delay tiers (<3h, 3-5h, >5h), cancellation rebooking, and ₹1,500 waiver caps.",
+          "Tier 3 — Dual-Engine Neural Reasoning: Gemini 3.6 Flash dynamically generates empathetic, policy-compliant dialogue strictly constrained by the Deterministic Policy Engine.",
+          "Tier 4 — Autonomous Action Dispatch: One-click automated execution of Priority Rebooking (SK-208), 100% Refunds, Meal QR Codes, Lounge Passes, and Supervisor Escalation Tickets (#ESC-8119)."
+        ],
+        snapshotTitle: "System Architecture Flow",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-cyan-400 font-bold text-[11px] pb-2 border-b border-slate-800">QUAD-TIER ARCHITECTURE</div>
+            <div class="space-y-1.5 text-[11px]">
+              <div class="p-2 bg-slate-800/80 rounded border border-sky-800/60 flex items-center justify-between">
+                <span class="font-bold text-sky-400">1. PNR Telemetry</span><span class="text-slate-400">SK4821X • Live GDS Sync</span>
+              </div>
+              <div class="p-2 bg-slate-800/80 rounded border border-amber-800/60 flex items-center justify-between">
+                <span class="font-bold text-amber-400">2. Deterministic Engine</span><span class="text-slate-400">Mathematical Rule Gate (<12ms)</span>
+              </div>
+              <div class="p-2 bg-slate-800/80 rounded border border-cyan-800/60 flex items-center justify-between">
+                <span class="font-bold text-cyan-400">3. Gemini 3.6 Flash</span><span class="text-slate-400">Neural Empathetic Reasoning</span>
+              </div>
+              <div class="p-2 bg-slate-800/80 rounded border border-emerald-800/60 flex items-center justify-between">
+                <span class="font-bold text-emerald-400">4. Action Center</span><span class="text-slate-400">Direct Rebook & GDS Writeback</span>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: "Here is the AIONOS AIR solution. Notice the fundamental design shift: the policy engine runs FIRST. Before a single word is generated by Gemini 3.6 Flash, the customer claim is mathematically evaluated against hard airline rules. The AI is an empathetic communicator, never the policy judge."
+      },
+      {
+        num: 5,
+        tag: "WHAT WE ARE DOING UNIQUE",
+        title: "The PRAG-A Deterministic Pipeline: The Core Innovation",
+        subtitle: "Perceive → Retrieve → Reason → Guardrail → Act: 100% Inspectable Cognitive Reasoning",
+        bullets: [
+          "1. PERCEIVE: Extracts customer intent, emotional urgency, temporal context (23 Sep 2026 IST), and specific remedy requests (cabin upgrade, hotel room, refund).",
+          "2. RETRIEVE: Binds PNR SK4821X and retrieves verified operational status of both outbound disrupted leg and return leg. Fetches relevant airline tariff clauses.",
+          "3. REASON: Computes exact arithmetic: 4-hour delay vs 5-hour hotel minimum; ₹2,000 waiver request vs ₹1,500 frontline discretionary cap.",
+          "4. GUARDRAIL: Hardcoded filter blocks out-of-policy claims. Return flight isolation enforced; unauthorized cabin upgrades strictly prohibited.",
+          "5. ACT: Emits certified safe conversational response and unlocks authorized one-click action buttons in the UI (Rebook, Refund, Lounge QR, HITL Ticket)."
+        ],
+        snapshotTitle: "PRAG-A 5-Stage Trace Visualizer",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-emerald-400 font-bold text-[11px] pb-2 border-b border-slate-800">PRAG-A COGNITIVE TRACE</div>
+            <div class="space-y-1 text-[10px]">
+              <div class="flex items-center space-x-2"><span class="text-sky-400 font-bold">PERCEIVE:</span><span class="text-slate-300">Outbound Cancelled • Return Leg Active</span></div>
+              <div class="flex items-center space-x-2"><span class="text-cyan-400 font-bold">RETRIEVE:</span><span class="text-slate-300">CAR Sec 3 Clause 2.1 • Leg Isolation Rule</span></div>
+              <div class="flex items-center space-x-2"><span class="text-amber-400 font-bold">REASON:</span><span class="text-slate-300">Free rebook on SK-208; upgrade return is denied</span></div>
+              <div class="flex items-center space-x-2"><span class="text-rose-400 font-bold">GUARDRAIL:</span><span class="text-slate-300">Enforce leg isolation; block unauthorized cabin</span></div>
+              <div class="flex items-center space-x-2"><span class="text-emerald-400 font-bold">ACT:</span><span class="text-slate-300">Emit grounded reply + unlock 1-click rebook</span></div>
+            </div>
+          </div>
+        `,
+        notes: "This slide explains our proprietary technical innovation: PRAG-A. Unlike black-box AI chatbots, every decision in AIONOS AIR passes through 5 transparent stages: Perceive, Retrieve, Reason, Guardrail, and Act. Every step is inspectable by airline supervisors and regulatory auditors."
+      },
+      {
+        num: 6,
+        tag: "MULTI-PERSONA TESTBED",
+        title: "Three Live Disruption Personas: Stress-Testing Edge Cases",
+        subtitle: "Demonstrating Deterministic Separation Across Loyalty Tiers, Delay Durations & Policy Caps",
+        bullets: [
+          "Priya Nair (Gold Tier • Cancelled SK-204): Tests return flight isolation. Outbound cancelled; entitled to free rebooking on SK-208 or refund; requests free Business upgrade on unaffected return leg (blocked).",
+          "Arvind Kulkarni (Silver Tier • Delayed 4h SK-118): Tests delay thresholds. 4h delay qualifies for meal voucher & departure lounge, but strictly disqualifies hotel room (<5h rule); generates #ESC-8119 ticket.",
+          "Meher Kaur (Platinum Tier • Delayed 6h SK-305): Tests waiver caps. 6h delay qualifies for daytime transit hotel; requests ₹2,000 fare difference waiver on partner carrier; capped at ₹1,500; escalates to #ESC-7421.",
+          "Zero Cross-Contamination: State machines completely isolate customer PNR histories, entitlement cards, and conversation threads."
+        ],
+        snapshotTitle: "Live Testbed Persona Cards",
+        snapshotContent: `
+          <div class="grid grid-cols-3 gap-2 h-full text-xs font-mono">
+            <div class="bg-slate-900/90 p-3 rounded-lg border border-amber-700/60 flex flex-col justify-between">
+              <div>
+                <span class="text-amber-400 font-bold block text-[11px]">PRIYA NAIR</span>
+                <span class="text-[9px] text-slate-400">GOLD • SK4821X</span>
+                <span class="text-[10px] text-rose-400 block mt-1">Cancelled SK-204</span>
+              </div>
+              <span class="text-[9px] text-slate-300">Leg Isolation Edge Case</span>
+            </div>
+            <div class="bg-slate-900/90 p-3 rounded-lg border border-cyan-700/60 flex flex-col justify-between">
+              <div>
+                <span class="text-cyan-400 font-bold block text-[11px]">ARVIND K.</span>
+                <span class="text-[9px] text-slate-400">SILVER • TR1190B</span>
+                <span class="text-[10px] text-amber-400 block mt-1">Delayed 4h SK-118</span>
+              </div>
+              <span class="text-[9px] text-slate-300"><5h Hotel Limit Edge Case</span>
+            </div>
+            <div class="bg-slate-900/90 p-3 rounded-lg border border-purple-700/60 flex flex-col justify-between">
+              <div>
+                <span class="text-purple-400 font-bold block text-[11px]">MEHER KAUR</span>
+                <span class="text-[9px] text-slate-400">PLATINUM • WL7742</span>
+                <span class="text-[10px] text-amber-400 block mt-1">Delayed 6h SK-305</span>
+              </div>
+              <span class="text-[9px] text-slate-300">₹1,500 Waiver Limit Edge Case</span>
+            </div>
+          </div>
+        `,
+        notes: "We engineered 3 distinct live personas into AIONOS AIR to prove our deterministic boundary protection under realistic customer pressure: Priya tests return flight isolation; Arvind tests the 4-hour delay hotel threshold; Meher tests the 1,500 rupee frontline waiver cap."
+      },
+      {
+        num: 7,
+        tag: "POLICY SPECIFICATION",
+        title: "Deterministic Service Policy & Entitlement Rules Matrix",
+        subtitle: "Translating Civil Aviation Requirements (DGCA CAR Section 3) Into Code-Level Guardrails",
+        bullets: [
+          "Cancellation Rebooking: Complimentary next-available rebooking within 24h OR 100% full refund with zero cancellation deduction.",
+          "Delay Refreshments (>3h): Digital concession QR barcode voucher issued instantly for terminal dining partners.",
+          "Departure Lounge Access (>3h): Complimentary access pass generated for participating terminal departure lounges.",
+          "Daytime Hotel Accommodation (>5h): Authorized strictly for delays exceeding 5 hours until revised departure time.",
+          "Frontline Waiver Cap (₹1,500): Hard stop at ₹1,500; any fare difference exceeding ₹1,500 mandates supervisor sign-off."
+        ],
+        snapshotTitle: "Policy Entitlement Evaluation Matrix",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-sky-400 font-bold text-[11px] pb-2 border-b border-slate-800">ENTITLEMENT STATUS CODES</div>
+            <div class="space-y-1.5 text-[10px]">
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/60"><span class="text-slate-300">Flight Cancellation:</span><span class="text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded">[APPLIES] Free Rebook / Refund</span></div>
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/60"><span class="text-slate-300">Delay >3 Hours (Meals):</span><span class="text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded">[APPLIES] Meal QR Issued</span></div>
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/60"><span class="text-slate-300">Delay >3 Hours (Lounge):</span><span class="text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded">[APPLIES] Lounge Pass Unlocked</span></div>
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/60"><span class="text-slate-300">Hotel Accommodation (<5h):</span><span class="text-rose-400 font-bold bg-rose-950/80 px-2 py-0.5 rounded">[EXCEEDED] Blocked; Ticket Opened</span></div>
+              <div class="flex justify-between items-center py-1"><span class="text-slate-300">Fare Difference Waiver:</span><span class="text-amber-400 font-bold bg-amber-950/80 px-2 py-0.5 rounded">[CAPPED AT ₹1,500] Supervisor Reqd</span></div>
+            </div>
+          </div>
+        `,
+        notes: "This matrix represents the fiscal and legal backbone of an airline. Every entitlement is an algorithmic condition. If Arvind is delayed 4 hours, hotel accommodation is mathematically Exceeded. There is zero ambiguity and zero room for model hallucination."
+      },
+      {
+        num: 8,
+        tag: "AUTONOMOUS EXECUTION",
+        title: "Autonomous Action Center & Human-in-the-Loop Escalation",
+        subtitle: "From Conversational Adjudication to Direct Enterprise Dispatch & Supervisory Ticketing",
+        bullets: [
+          "Direct GDS Writeback: Confirmed priority rebooking on relief flight SK-208 emits PNR segment update and SMS boarding pass within 250ms.",
+          "Instant Statutory Refunds: 100% refund of ₹8,450 processed to original payment method with zero administrative fees.",
+          "Automated Managerial Ticketing: When exceptions are requested, formal tickets (#ESC-8119, #ESC-7421) route directly to Duty Supervisors.",
+          "Post-Escalation Continuity: Active entitlements remain unlocked while supervisor reviews the out-of-policy request."
+        ],
+        snapshotTitle: "Action Center & Supervisory Tickets",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-emerald-400 font-bold text-[11px] pb-2 border-b border-slate-800">ACTION DISPATCH CONSOLE</div>
+            <div class="space-y-1.5 text-[10px]">
+              <div class="p-2 bg-emerald-950/40 rounded border border-emerald-800/60 flex justify-between items-center">
+                <span class="text-emerald-300 font-bold">✓ Rebook SK-208 Confirmed</span><span class="text-slate-400">Seat 12A • 250ms</span>
+              </div>
+              <div class="p-2 bg-emerald-950/40 rounded border border-emerald-800/60 flex justify-between items-center">
+                <span class="text-emerald-300 font-bold">✓ Full Refund ₹8,450 Issued</span><span class="text-slate-400">Zero deduction</span>
+              </div>
+              <div class="p-2 bg-purple-950/40 rounded border border-purple-800/60 flex justify-between items-center">
+                <span class="text-purple-300 font-bold">⚠ Ticket #ESC-8119 Created</span><span class="text-slate-400">Arvind 4h Hotel Request</span>
+              </div>
+              <div class="p-2 bg-purple-950/40 rounded border border-purple-800/60 flex justify-between items-center">
+                <span class="text-purple-300 font-bold">⚠ Ticket #ESC-7421 Created</span><span class="text-slate-400">Meher ₹2k Waiver Request</span>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: "AIONOS AIR goes beyond passive chat into direct action dispatch. Pre-approved remedies execute within 250ms. When an exception is requested, the system automatically opens a formal supervisor ticket with complete audit context, ensuring care continuity."
+      },
+      {
+        num: 9,
+        tag: "AUDIT & COMPLIANCE",
+        title: "Immutable Audit Trail & Regulatory Event Telemetry",
+        subtitle: "Microsecond-Level Compliance Logging for DGCA, FAA & EU261 Inspection",
+        bullets: [
+          "Microsecond Timestamping: Every inbound message, policy evaluation, guardrail interception, and action execution is cryptographically logged.",
+          "Regulatory Defense Shield: Non-repudiable audit records provide conclusive proof that statutory care requirements were met.",
+          "Four Severity Classifications: Events indexed as NORMAL, WARNING (guardrail interception), CRITICAL (unauthorized attempt), or SUCCESS (action dispatch).",
+          "Inspection Ready: One-click export formats formatted event logs for civil aviation authority inspectors and internal compliance teams."
+        ],
+        snapshotTitle: "Live Regulatory Audit Ledger",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-sky-400 font-bold text-[11px] pb-2 border-b border-slate-800">DGCA COMPLIANCE AUDIT TELEMETRY</div>
+            <div class="space-y-1 text-[9.5px]">
+              <div class="text-slate-300"><span class="text-slate-500">18:42:01.12</span> [SK4821X] <span class="text-sky-400">INBOUND</span>: Flight SK-204 cancelled</div>
+              <div class="text-slate-300"><span class="text-slate-500">18:42:01.89</span> [SK4821X] <span class="text-emerald-400">POLICY</span>: Rebooking & refund unlocked</div>
+              <div class="text-slate-300"><span class="text-slate-500">18:42:45.31</span> [SK4821X] <span class="text-amber-400">GUARDRAIL</span>: Return leg upgrade blocked</div>
+              <div class="text-slate-300"><span class="text-slate-500">18:43:10.55</span> [SK4821X] <span class="text-emerald-400">ACTION</span>: Confirmed rebook on SK-208</div>
+              <div class="text-slate-300"><span class="text-slate-500">19:05:01.21</span> [TR1190B] <span class="text-purple-400">ESCALATION</span>: Ticket #ESC-8119 dispatched</div>
+            </div>
+          </div>
+        `,
+        notes: "Compliance requires proof. Our immutable audit ledger captures every customer message, policy check, guardrail block, and action execution with microsecond timestamps. If a passenger disputes statutory care, the airline possesses a non-repudiable legal defense."
+      },
+      {
+        num: 10,
+        tag: "SPATIAL AWARENESS",
+        title: "Cinematic 3D Flight Opening & Spatial Disruption Radar",
+        subtitle: "Real-Time Procedural WebGL Situational Awareness for Operations Staff & Passengers",
+        bullets: [
+          "Interactive 3D Airliner & Radar HUD: Custom procedural Three.js commercial airliner featuring real-time engine turbine animation, dynamic control surfaces, runway approach vectors, and flight telemetry HUD.",
+          "Hub Network Telemetry: Maps core Indian aviation corridors (Delhi DEL, Mumbai BOM, Goa GOI, Bengaluru BLR, Hyderabad HYD) with live flight telemetry.",
+          "Cascading Delay Awareness: Visualizing flight corridors allows passengers to understand why an incoming aircraft is delayed due to weather, drastically defusing frontline frustration.",
+          "Seamless WebGL Transition: Smooth transition from 3D cockpit perspective into the operational Resolution Control Tower."
+        ],
+        snapshotTitle: "3D Flight Radar Telemetry",
+        snapshotContent: `
+          <div class="bg-[#020617] p-4 rounded-xl border border-sky-900 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-sky-400 font-bold text-[11px] pb-2 border-b border-sky-950 flex justify-between">
+              <span>RADAR TELEMETRY HUD</span><span class="text-emerald-400 animate-pulse">● LIVE</span>
+            </div>
+            <div class="space-y-1.5 text-[10px]">
+              <div class="flex justify-between"><span class="text-slate-400">AIRSPEED:</span><span class="text-white font-bold">482 KTS</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">ALTITUDE:</span><span class="text-white font-bold">FL340 (34,000 FT)</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">CORRIDOR:</span><span class="text-white font-bold">DEL → GOI (Runway 27R)</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">STATUS:</span><span class="text-rose-400 font-bold">CANCELLED (TECH)</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">RELIEF FLIGHT:</span><span class="text-emerald-400 font-bold">SK-208 (ETD 21:15)</span></div>
+            </div>
+          </div>
+        `,
+        notes: "Situational awareness transforms customer psychology during disruptions. Our WebGL Three.js opening scene renders 3D aircraft telemetry and hub network congestion, giving travelers transparent spatial visibility into why their flight was held."
+      },
+      {
+        num: 11,
+        tag: "BUSINESS IMPACT & ROI",
+        title: "Quantified Business Impact: Millions Saved in Margin & Loyalty",
+        subtitle: "Transforming Airline Disruption Resolution from a Chronic Bleed into a Loyalty Engine",
+        bullets: [
+          "85% Handle Time Reduction: Drops resolution duration from an average of 42 minutes to under 6 minutes per flyer.",
+          "$4.2M Direct Margin Preserved: Mathematically eliminates unauthorized agent waiver leakage for an airline flying 10M passengers annually.",
+          "99.8% Policy Compliance Rate: Guaranteed mathematical adherence to DGCA and EU261 statutory rules, eliminating regulatory fines.",
+          "+34 NPS Lift During IROPS: Turning chaotic disruptions into frictionless recovery drives unprecedented brand loyalty among corporate travelers."
+        ],
+        snapshotTitle: "Financial & Operational ROI Dashboard",
+        snapshotContent: `
+          <div class="grid grid-cols-2 gap-3 h-full font-mono text-xs">
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col justify-center">
+              <span class="text-slate-400 text-[10px] uppercase">Contact Center Time</span>
+              <span class="text-3xl font-bold text-sky-400">-85%</span>
+              <span class="text-[10px] text-slate-400">42 min down to <6 min</span>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col justify-center">
+              <span class="text-slate-400 text-[10px] uppercase">Waiver Margin Saved</span>
+              <span class="text-3xl font-bold text-emerald-400">$4.2M</span>
+              <span class="text-[10px] text-slate-400">Per 10M flyers / year</span>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col justify-center">
+              <span class="text-slate-400 text-[10px] uppercase">Policy Compliance</span>
+              <span class="text-3xl font-bold text-cyan-400">99.8%</span>
+              <span class="text-[10px] text-slate-400">Zero regulatory fines</span>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col justify-center">
+              <span class="text-slate-400 text-[10px] uppercase">Frequent Flyer NPS</span>
+              <span class="text-3xl font-bold text-amber-400">+34 pts</span>
+              <span class="text-[10px] text-slate-400">Guarding $28M high-tier ARR</span>
+            </div>
+          </div>
+        `,
+        notes: "The financial return is clear: A carrier handling 10M flyers saves over $4.2M annually by capping unauthorized waivers, slashes call center handling time by 85%, and preserves high-yield corporate accounts by eliminating disruption friction."
+      },
+      {
+        num: 12,
+        tag: "ROADMAP & SCALABILITY",
+        title: "Technology Stack & Enterprise Integration Roadmap",
+        subtitle: "Production-Ready Architecture Built for Global GDS Distribution & Cloud Run Containerization",
+        bullets: [
+          "Phase 1 (Delivered Today): Production-ready core with Deterministic Policy Engine, PRAG-A pipeline, 3 live testbeds, supervisor escalation ticketing, and Cloud Run single-port container deployment.",
+          "Phase 2 (Q1 2027): Direct bi-directional PSS writeback via IATA NDC 21.3 XML protocol for Amadeus Altéa and SabreSonic GDS systems.",
+          "Phase 3 (Q2 2027): Sub-second voice agent via Gemini Live Audio WebRTC for automated phone IVR disruption rebooking.",
+          "Multi-Lingual Airport Integration: Support for 12 regional languages and terminal concession POS barcode scanner integration."
+        ],
+        snapshotTitle: "Enterprise Deployment Timeline",
+        snapshotContent: `
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono h-full flex flex-col justify-between">
+            <div class="text-cyan-400 font-bold text-[11px] pb-2 border-b border-slate-800">3-PHASE IMPLEMENTATION PLAN</div>
+            <div class="space-y-2 text-[10.5px]">
+              <div class="p-2 bg-emerald-950/40 rounded border border-emerald-800/60">
+                <span class="text-emerald-400 font-bold block">PHASE 1: LIVE TODAY</span>
+                <span class="text-slate-300">Policy Engine • PRAG-A Pipeline • Cloud Run Container • Audit Telemetry</span>
+              </div>
+              <div class="p-2 bg-sky-950/40 rounded border border-sky-800/60">
+                <span class="text-sky-400 font-bold block">PHASE 2: Q1 2027</span>
+                <span class="text-slate-300">IATA NDC 21.3 XML • Amadeus Altéa & Sabre GDS Direct Writeback</span>
+              </div>
+              <div class="p-2 bg-purple-950/40 rounded border border-purple-800/60">
+                <span class="text-purple-400 font-bold block">PHASE 3: Q2 2027</span>
+                <span class="text-slate-300">Gemini Live Audio WebRTC Voice IVR • 12 Regional Languages</span>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: "In conclusion, AIONOS AIR is architected for enterprise global scale. Phase 1 is delivered and verified today on Cloud Run. Phase 2 connects directly to Amadeus and Sabre GDS protocols, and Phase 3 enables sub-second voice WebRTC. Thank you for your time, and we invite your questions."
+      }
+    ];
+
+    let currentSlide = 0;
+
+    function renderSlide(idx) {
+      currentSlide = idx;
+      const s = slides[idx];
+      document.getElementById('slideIndicator').innerText = `${s.num} / ${slides.length}`;
+      document.getElementById('notesContent').innerText = s.notes;
+
+      const html = `
+        <!-- HEADER -->
+        <div class="border-b border-slate-800 pb-4">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-mono font-bold text-sky-400 uppercase tracking-widest bg-sky-950/80 px-2.5 py-0.5 rounded border border-sky-800/60">
+              ${s.tag}
+            </span>
+            <span class="text-xs font-mono text-slate-400 font-semibold">SLIDE ${s.num} OF ${slides.length}</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">${s.title}</h1>
+          <p class="text-xs sm:text-sm text-sky-300/90 font-medium italic mt-0.5">${s.subtitle}</p>
+        </div>
+
+        <!-- BODY: TWO COLUMNS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-4 flex-1 items-center">
+          <!-- Left: Content Heavy Points -->
+          <div class="lg:col-span-7 space-y-3">
+            ${s.bullets.map(b => `
+              <div class="flex items-start space-x-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                <span class="text-sky-400 font-bold text-sm mt-0.5">▪</span>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${b}</p>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Right: Project Snapshot -->
+          <div class="lg:col-span-5 h-full flex flex-col justify-center">
+            <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>PROJECT SNAPSHOT:</span>
+              <span class="text-sky-400 font-semibold">${s.snapshotTitle}</span>
+            </div>
+            <div class="h-64 sm:h-72">
+              ${s.snapshotContent}
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span>AIONOS AIR • DGCA CAR Section 3 & EU261 Compliant</span>
+          <span class="text-sky-400">Confidential • For Executive & Board Review Only</span>
+        </div>
+      `;
+      document.getElementById('slideContainer').innerHTML = html;
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        renderSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        renderSlide(currentSlide - 1);
+      }
+    }
+
+    function toggleNotes() {
+      const el = document.getElementById('notesDrawer');
+      el.classList.toggle('hidden');
+    }
+
+    function copyNotes() {
+      const text = slides[currentSlide].notes;
+      navigator.clipboard.writeText(text);
+      alert('Speaker script copied to clipboard!');
+    }
+
+    function toggleGrid() {
+      const el = document.getElementById('gridModal');
+      el.classList.toggle('hidden');
+      if (!el.classList.contains('hidden')) {
+        renderGrid();
+      }
+    }
+
+    function renderGrid() {
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = slides.map((s, idx) => `
+        <div onclick="selectSlide(${idx})" class="cursor-pointer bg-slate-900 hover:bg-slate-800 p-4 rounded-xl border ${idx === currentSlide ? 'border-sky-500 shadow-lg' : 'border-slate-800'} transition flex flex-col justify-between">
+          <div>
+            <span class="text-[10px] font-mono text-sky-400 font-bold block mb-1">SLIDE ${s.num} • ${s.tag}</span>
+            <h3 class="text-xs font-bold text-white mb-1 line-clamp-2">${s.title}</h3>
+            <p class="text-[10px] text-slate-400 line-clamp-3">${s.bullets[0]}</p>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500 mt-3 pt-2 border-t border-slate-800">Click to present</span>
+        </div>
+      `).join('');
+    }
+
+    function selectSlide(idx) {
+      renderSlide(idx);
+      toggleGrid();
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 'Home') {
+        renderSlide(0);
+      } else if (e.key === 'End') {
+        renderSlide(slides.length - 1);
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'g') {
+        toggleGrid();
+      } else if (e.key.toLowerCase() === 'f') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    // Initialize
+    renderSlide(0);
+  </script>
+</body>
+</html>
